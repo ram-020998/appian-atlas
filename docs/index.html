@@ -198,8 +198,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
             margin-bottom: 24px;
+        }
+
+        .feature-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: white;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         .feature-card h3 {
@@ -241,9 +250,24 @@
         }
 
         .persona-icon {
-            font-size: 4rem;
-            margin-bottom: 24px;
-            filter: grayscale(0);
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .persona-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         .persona-card h3 {
@@ -443,32 +467,73 @@
             </div>
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                    </div>
                     <h3>Intelligent Parsing</h3>
                     <p>Automatically extracts and structures all Appian objects including interfaces, rules, processes, and more.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🧩</div>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </div>
                     <h3>Bundle Organization</h3>
                     <p>Groups related objects into functional bundles for easy navigation and understanding of complete workflows.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🔗</div>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+                            <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
+                            <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                    </div>
                     <h3>Dependency Tracking</h3>
                     <p>Traces complete dependency graphs enabling impact analysis and safe refactoring decisions.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
                     <h3>Lightning Fast Search</h3>
                     <p>Find any interface, rule, or process by name in milliseconds with optimized search indexes.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 8V4H8"></path>
+                            <rect x="2" y="14" width="8" height="8" rx="2"></rect>
+                            <path d="M2 14h8"></path>
+                            <path d="M12 14h10"></path>
+                            <path d="M12 20h10"></path>
+                            <path d="m16 8 4-4-4-4"></path>
+                        </svg>
+                    </div>
                     <h3>AI-Powered Queries</h3>
                     <p>Ask questions in natural language and get intelligent responses through MCP server integration.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">👥</div>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
                     <h3>Role-Based Views</h3>
                     <p>Three tailored AI assistants provide responses appropriate for developers, POs, and designers.</p>
                 </div>
@@ -486,7 +551,11 @@
             </div>
             <div class="persona-grid">
                 <div class="persona-card">
-                    <div class="persona-icon">🔧</div>
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                        </svg>
+                    </div>
                     <h3>Developer</h3>
                     <div class="role">Technical Deep-Dive</div>
                     <p>Implementation details and code analysis</p>
@@ -499,7 +568,15 @@
                     </ul>
                 </div>
                 <div class="persona-card">
-                    <div class="persona-icon">📋</div>
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                            <path d="M9 14h6"></path>
+                            <path d="M9 18h6"></path>
+                            <path d="M9 10h6"></path>
+                        </svg>
+                    </div>
                     <h3>Product Owner</h3>
                     <div class="role">Business Focus</div>
                     <p>Capabilities without technical jargon</p>
@@ -512,7 +589,11 @@
                     </ul>
                 </div>
                 <div class="persona-card">
-                    <div class="persona-icon">🎨</div>
+                    <div class="persona-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                        </svg>
+                    </div>
                     <h3>UX Designer</h3>
                     <div class="role">Interface Analysis</div>
                     <p>UI/UX patterns and user flows</p>
