@@ -1,0 +1,18 @@
+[submodule "appian-parser"]
+	path = appian-parser
+	url = git@github.com:ram-020998/appian-parser.git
+[submodule "gam-knowledge-base"]
+	path = gam-knowledge-base
+	url = git@github.com:ram-020998/gam-knowledge-base.git
+[submodule "power-appian-atlas"]
+	path = power-appian-atlas
+	url = git@github.com:ram-020998/power-appian-atlas.git
+[submodule "power-appian-atlas-developer"]
+	path = power-appian-atlas-developer
+	url = git@github.com:ram-020998/power-appian-atlas-developer.git
+[submodule "power-appian-atlas-product-owner"]
+	path = power-appian-atlas-product-owner
+	url = git@github.com:ram-020998/power-appian-atlas-product-owner.git
+[submodule "power-appian-atlas-ux-designer"]
+	path = power-appian-atlas-ux-designer
+	url = git@github.com:ram-020998/power-appian-atlas-ux-designer.git
