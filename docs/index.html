@@ -50,6 +50,46 @@
             overflow: hidden;
         }
 
+        /* Navigation */
+        nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 24px 0;
+            z-index: 10;
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--white);
+        }
+
         .hero::before {
             content: '';
             position: absolute;
@@ -434,6 +474,15 @@
 </head>
 <body>
     <section class="hero">
+        <nav>
+            <div class="container">
+                <a href="index.html" class="logo">Appian Atlas</a>
+                <div class="nav-links">
+                    <a href="installation.html">Installation</a>
+                    <a href="https://github.com/ram-020998/appian-atlas" target="_blank">GitHub</a>
+                </div>
+            </div>
+        </nav>
         <div class="container">
             <div class="hero-content">
                 <h1>
