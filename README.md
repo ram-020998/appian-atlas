@@ -8,13 +8,14 @@ This folder contains all repositories for the Appian Atlas project:
 
 ```
 appian-atlas/
-├── appian-parser/                      # Core parsing engine
 ├── gam-knowledge-base/                 # Data + MCP server
 ├── power-appian-atlas/                 # Powers landing page
 ├── power-appian-atlas-developer/       # Developer persona
 ├── power-appian-atlas-product-owner/   # Product Owner persona
 └── power-appian-atlas-ux-designer/     # UX Designer persona
 ```
+
+> **Note**: The `appian-parser` repository is private and not included as a submodule.
 
 ## Documentation
 
@@ -27,14 +28,14 @@ See `.kiro/appian-atlas-project.md` for complete documentation including:
 
 ## Quick Links
 
-- **Parser**: [appian-parser/README.md](appian-parser/README.md)
 - **Knowledge Base**: [gam-knowledge-base/README.md](gam-knowledge-base/README.md)
 - **Powers**: [power-appian-atlas/README.md](power-appian-atlas/README.md)
+- **Website**: https://ram-020998.github.io/appian-atlas/
 
 ## GitHub Repositories
 
 All under `ram-020998`:
-- https://github.com/ram-020998/appian-parser
+- https://github.com/ram-020998/appian-parser (private)
 - https://github.com/ram-020998/gam-knowledge-base
 - https://github.com/ram-020998/power-appian-atlas
 - https://github.com/ram-020998/power-appian-atlas-developer

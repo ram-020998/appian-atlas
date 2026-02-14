@@ -1,6 +1,3 @@
-[submodule "appian-parser"]
-	path = appian-parser
-	url = git@github.com:ram-020998/appian-parser.git
 [submodule "gam-knowledge-base"]
 	path = gam-knowledge-base
 	url = git@github.com:ram-020998/gam-knowledge-base.git
