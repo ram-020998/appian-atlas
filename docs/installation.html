@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation Guide - Appian Atlas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --gray: #64748b;
+            --light: #f1f5f9;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%);
+            color: var(--white);
+            padding: 60px 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        header p {
+            color: var(--light);
+            font-size: 1.1rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--light);
+            text-decoration: none;
+            margin-bottom: 24px;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--white);
+        }
+
+        /* Main Content */
+        main {
+            background: var(--white);
+            margin: 40px auto;
+            padding: 60px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 48px 0 24px;
+            color: var(--dark);
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 32px 0 16px;
+            color: var(--dark);
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--gray);
+            line-height: 1.8;
+        }
+
+        ul, ol {
+            margin: 16px 0 16px 24px;
+            color: var(--gray);
+        }
+
+        li {
+            margin-bottom: 12px;
+            line-height: 1.8;
+        }
+
+        strong {
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        code {
+            background: var(--light);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: var(--primary);
+        }
+
+        pre {
+            background: var(--dark);
+            color: #94a3b8;
+            padding: 24px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 24px 0;
+            border: 1px solid var(--dark-light);
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        .note {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-left: 4px solid var(--primary);
+            padding: 20px 24px;
+            margin: 24px 0;
+            border-radius: 8px;
+        }
+
+        .note strong {
+            color: var(--primary);
+        }
+
+        .warning {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(251, 146, 60, 0.1) 100%);
+            border-left: 4px solid var(--accent);
+            padding: 20px 24px;
+            margin: 24px 0;
+            border-radius: 8px;
+        }
+
+        .warning strong {
+            color: var(--accent);
+        }
+
+        .step-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .platform-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 24px 0 16px;
+            flex-wrap: wrap;
+        }
+
+        .platform-tab {
+            padding: 8px 20px;
+            background: var(--light);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .platform-tab.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .platform-content {
+            display: none;
+        }
+
+        .platform-content.active {
+            display: block;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--secondary);
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--gray);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 32px 24px;
+                margin: 24px 16px;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="index.html" class="back-link">
+                <span>←</span>
+                <span>Back to Home</span>
+            </a>
+            <h1>Installation Guide</h1>
+            <p>Complete setup instructions for Appian Atlas</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <h2>Prerequisites</h2>
+        <ul>
+            <li><a href="https://kiro.dev" target="_blank">Kiro IDE</a> installed</li>
+            <li>Python 3.10 or later</li>
+            <li><code>pip</code> available in your terminal</li>
+            <li>A GitHub personal access token</li>
+        </ul>
+
+        <h2>Step 1: Verify Python Version</h2>
+        <p>Appian Atlas requires Python 3.10 or later. Check your version:</p>
+        <pre><code>python3 --version</code></pre>
+
+        <p>If you have Python 3.9 or earlier, install Python 3.10+:</p>
+        <div class="platform-tabs">
+            <div class="platform-tab active" onclick="showPlatform('macos')">macOS</div>
+            <div class="platform-tab" onclick="showPlatform('windows')">Windows</div>
+            <div class="platform-tab" onclick="showPlatform('linux')">Linux</div>
+        </div>
+
+        <div id="macos" class="platform-content active">
+            <pre><code># Using Homebrew
+brew install python@3.10
+
+# Or download from python.org
+# https://www.python.org/downloads/</code></pre>
+        </div>
+
+        <div id="windows" class="platform-content">
+            <pre><code># Download installer from python.org
+# https://www.python.org/downloads/
+# Make sure to check "Add Python to PATH" during installation</code></pre>
+        </div>
+
+        <div id="linux" class="platform-content">
+            <pre><code># Ubuntu/Debian
+sudo apt update
+sudo apt install python3.10
+
+# Fedora
+sudo dnf install python3.10
+
+# Arch
+sudo pacman -S python</code></pre>
+        </div>
+
+        <h2>Step 2: Install the MCP Server</h2>
+        <p>Open the integrated terminal in Kiro IDE (<code>Ctrl+`</code> or <code>Cmd+`</code>).</p>
+
+        <h3>Option A: Using pipx (Recommended)</h3>
+        <p>pipx automatically creates an isolated environment:</p>
+        <pre><code>pipx install "appian-atlas @ git+https://github.com/ram-020998/gam-knowledge-base.git#subdirectory=mcp_server"</code></pre>
+
+        <h3>Option B: Using pip with virtual environment</h3>
+        <p>Create and activate a virtual environment first:</p>
+        
+        <div class="platform-tabs">
+            <div class="platform-tab active" onclick="showPlatform('venv-unix')">macOS/Linux</div>
+            <div class="platform-tab" onclick="showPlatform('venv-windows')">Windows</div>
+        </div>
+
+        <div id="venv-unix" class="platform-content active">
+            <pre><code># Create virtual environment
+python3 -m venv ~/.venvs/appian-atlas
+
+# Activate it
+source ~/.venvs/appian-atlas/bin/activate
+
+# Upgrade pip
+pip install --upgrade pip
+
+# Install the package
+pip install "git+https://github.com/ram-020998/gam-knowledge-base.git#subdirectory=mcp_server"</code></pre>
+        </div>
+
+        <div id="venv-windows" class="platform-content">
+            <pre><code># Create virtual environment
+python -m venv %USERPROFILE%\.venvs\appian-atlas
+
+# Activate it
+%USERPROFILE%\.venvs\appian-atlas\Scripts\activate
+
+# Upgrade pip
+pip install --upgrade pip
+
+# Install the package
+pip install "git+https://github.com/ram-020998/gam-knowledge-base.git#subdirectory=mcp_server"</code></pre>
+        </div>
+
+        <div class="note">
+            <strong>Note:</strong> Always use a virtual environment or pipx. Do not install globally to avoid conflicts with other Python packages.
+        </div>
+
+        <h3>Verify Installation</h3>
+        <pre><code>appian-atlas --help</code></pre>
+
+        <p>You should see:</p>
+        <pre><code>usage: appian-atlas [-h] (--data-dir DATA_DIR | --github OWNER/REPO)
+                     [--branch BRANCH] [--data-prefix DATA_PREFIX]</code></pre>
+
+        <div class="warning">
+            <strong>Troubleshooting:</strong> If <code>appian-atlas</code> is not found, use the full Python module path:
+            <pre><code>python -m mcp_server --help</code></pre>
+        </div>
+
+        <h2>Step 3: Generate GitHub Token</h2>
+        <p>The MCP server fetches data from GitHub at runtime, so it needs authentication.</p>
+
+        <ol>
+            <li>Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)</a></li>
+            <li>Click <strong>"Generate new token (classic)"</strong></li>
+            <li>Give it a name (e.g., "Appian Atlas MCP")</li>
+            <li>Select scope: <code>repo</code> (for private repos) or <code>public_repo</code> (for public repos)</li>
+            <li>Click <strong>"Generate token"</strong> and copy it</li>
+        </ol>
+
+        <div class="warning">
+            <strong>Important:</strong> Save your token securely. You won't be able to see it again after leaving the page.
+        </div>
+
+        <h2>Step 4: Install Kiro Power</h2>
+        <p>Choose the power that matches your role. Each power uses the same MCP server but presents information differently.</p>
+
+        <h3>For Developers</h3>
+        <p>Technical details, UUIDs, SAIL code, and dependency analysis.</p>
+        <pre><code>https://github.com/ram-020998/power-appian-atlas-developer</code></pre>
+
+        <h3>For Product Owners</h3>
+        <p>Business language without technical jargon, focused on capabilities and workflows.</p>
+        <pre><code>https://github.com/ram-020998/power-appian-atlas-product-owner</code></pre>
+
+        <h3>For UX Designers</h3>
+        <p>UI/UX focus with interface layouts, SAIL components, and user flows.</p>
+        <pre><code>https://github.com/ram-020998/power-appian-atlas-ux-designer</code></pre>
+
+        <h3>Installation Steps</h3>
+        <ol>
+            <li>Open the <strong>Powers</strong> tab in Kiro IDE</li>
+            <li>Click <strong>Add Power</strong></li>
+            <li>Paste the URL for your role</li>
+            <li>Wait for installation to complete</li>
+        </ol>
+
+        <h2>Step 5: Configure GitHub Token</h2>
+        <p>Add your GitHub token to the Power configuration:</p>
+
+        <ol>
+            <li>In Kiro IDE, go to the <strong>Powers</strong> tab</li>
+            <li>Find your installed Appian Atlas power</li>
+            <li>Click <strong>Open Power Config</strong></li>
+            <li>Find the line with <code>"GITHUB_TOKEN": "${GITHUB_TOKEN}"</code></li>
+            <li>Replace <code>${GITHUB_TOKEN}</code> with your actual token:</li>
+        </ol>
+
+        <pre><code>"GITHUB_TOKEN": "ghp_your_token_here"</code></pre>
+
+        <ol start="6">
+            <li>Save the config</li>
+            <li>Go to the <strong>MCP Servers</strong> panel in Kiro</li>
+            <li>Find <code>appian-atlas</code> and click reconnect (or restart Kiro)</li>
+        </ol>
+
+        <div class="note">
+            <strong>Security Tip:</strong> The token is stored locally in your Kiro configuration and is never shared.
+        </div>
+
+        <h2>Step 6: Verify Everything Works</h2>
+        <ol>
+            <li>Open the Kiro sidebar and look for the <strong>MCP Servers</strong> section</li>
+            <li>You should see <code>appian-atlas</code> listed with a green status indicator</li>
+            <li>Open the Kiro chat and ask:</li>
+        </ol>
+
+        <pre><code>What applications are available?</code></pre>
+
+        <p>You should get a response listing available applications with object counts and bundle stats.</p>
+
+        <h2>Example Queries</h2>
+        <p>Here are some things you can ask once everything is set up:</p>
+
+        <pre><code>Give me an overview of SourceSelection
+
+Find all evaluation-related actions in SourceSelection
+
+How does the Complete LPTA Evaluation action work?
+
+What depends on AS_GSS_BL_validateVendors?
+
+Are there any unused expression rules in SourceSelection?
+
+Show me the SAIL code for the Add Vendors form</code></pre>
+
+        <h2>Troubleshooting</h2>
+
+        <h3>401 Authentication Error</h3>
+        <p><strong>Symptom:</strong> MCP server shows 401 errors or fails to fetch data.</p>
+        <p><strong>Solution:</strong></p>
+        <ol>
+            <li>Go to <strong>Powers</strong> tab in Kiro</li>
+            <li>Find your Appian Atlas power and click <strong>Open Power Config</strong></li>
+            <li>Verify your GitHub token is correctly set (not <code>${GITHUB_TOKEN}</code>)</li>
+            <li>Save and reconnect the MCP server</li>
+        </ol>
+
+        <h3>MCP Server Not Found</h3>
+        <p><strong>Symptom:</strong> <code>appian-atlas</code> command not found after installation.</p>
+        <p><strong>Solution:</strong></p>
+        <pre><code># Use the Python module directly
+python -m mcp_server --github ram-020998/gam-knowledge-base
+
+# Or find the install location
+pip show appian-atlas</code></pre>
+
+        <h3>Python Version Error</h3>
+        <p><strong>Symptom:</strong> Error about Python version requirement.</p>
+        <p><strong>Solution:</strong> Install Python 3.10 or later (see Step 1) and create a new virtual environment with the correct Python version:</p>
+        <pre><code>python3.10 -m venv ~/.venvs/appian-atlas</code></pre>
+
+        <h3>Server Shows as Disconnected</h3>
+        <p><strong>Solution:</strong></p>
+        <ol>
+            <li>Check that Python 3.10+ is available: <code>python3 --version</code></li>
+            <li>Check that the package is installed: <code>pip list | grep appian-atlas</code></li>
+            <li>Try running the server manually to see errors:</li>
+        </ol>
+        <pre><code>appian-atlas --github ram-020998/gam-knowledge-base</code></pre>
+        <ol start="4">
+            <li>Click the reconnect button in the Kiro MCP Servers panel</li>
+        </ol>
+
+        <h2>Need Help?</h2>
+        <p>If you encounter issues not covered here:</p>
+        <ul>
+            <li>Check the <a href="https://github.com/ram-020998/gam-knowledge-base" target="_blank">Knowledge Base README</a> for detailed documentation</li>
+            <li>Visit the <a href="https://github.com/ram-020998/appian-atlas" target="_blank">Appian Atlas repository</a> for project overview</li>
+            <li>Review the <a href="https://github.com/ram-020998/power-appian-atlas" target="_blank">Powers documentation</a> for persona-specific guides</li>
+        </ul>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Appian Atlas • <a href="index.html">Home</a> • <a href="https://github.com/ram-020998/appian-atlas" target="_blank">GitHub</a></p>
+        </div>
+    </footer>
+
+    <script>
+        function showPlatform(platform) {
+            // Hide all platform contents
+            document.querySelectorAll('.platform-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.platform-tab').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Show selected platform content
+            document.getElementById(platform).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
