@@ -19,3 +19,6 @@
 [submodule "atlas-docs"]
 	path = atlas-docs
 	url = git@github.com:ram-020998/atlas-docs.git
+[submodule "power-appian-reference"]
+	path = power-appian-reference
+	url = git@github.com:ram-020998/power-appian-reference.git
