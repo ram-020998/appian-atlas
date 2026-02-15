@@ -14,7 +14,8 @@ appian-atlas/
 ├── power-appian-atlas/                 # Powers landing page
 ├── power-appian-atlas-developer/       # Developer persona
 ├── power-appian-atlas-product-owner/   # Product Owner persona
-└── power-appian-atlas-ux-designer/     # UX Designer persona
+├── power-appian-atlas-ux-designer/     # UX Designer persona
+└── power-appian-reference/             # SAIL language reference & best practices
 ```
 
 ### Clone with all submodules
@@ -52,3 +53,4 @@ All under `ram-020998`:
 - https://github.com/ram-020998/power-appian-atlas-developer
 - https://github.com/ram-020998/power-appian-atlas-product-owner
 - https://github.com/ram-020998/power-appian-atlas-ux-designer
+- https://github.com/ram-020998/power-appian-reference
