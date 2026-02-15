@@ -20,7 +20,8 @@ appian-atlas/
 ├── power-appian-atlas/                 # Landing page for powers
 ├── power-appian-atlas-developer/       # Developer persona power
 ├── power-appian-atlas-product-owner/   # Product Owner persona power
-└── power-appian-atlas-ux-designer/     # UX Designer persona power
+├── power-appian-atlas-ux-designer/     # UX Designer persona power
+└── power-appian-reference/             # SAIL language reference & best practices
 ```
 
 ## Component Details
@@ -141,9 +142,9 @@ atlas-docs/
 
 ---
 
-### 4. Powers (3 persona-specific repositories)
+### 4. Powers (4 repositories)
 
-**Purpose**: Kiro Powers that provide persona-specific steering for exploring Appian applications.
+**Purpose**: Kiro Powers that provide persona-specific steering and SAIL language reference for exploring Appian applications.
 
 #### power-appian-atlas-developer
 - **Focus**: Technical implementation details
@@ -163,7 +164,13 @@ atlas-docs/
 - **Language**: UI/UX terminology
 - **URL**: `https://github.com/ram-020998/power-appian-atlas-ux-designer`
 
-**Structure** (each power):
+#### power-appian-reference
+- **Focus**: SAIL language reference and Appian development best practices
+- **Contains**: Complete SAIL grammar (154KB), common functions, mistakes, design patterns, accessibility guidelines
+- **Usage**: Queried by persona powers via subagent for SAIL syntax and best practices
+- **URL**: `https://github.com/ram-020998/power-appian-reference`
+
+**Structure** (persona powers):
 ```
 power-appian-atlas-<persona>/
 ├── POWER.md        # Frontmatter + steering instructions
@@ -171,7 +178,20 @@ power-appian-atlas-<persona>/
 └── README.md       # Installation guide
 ```
 
-**MCP Configuration** (same for all):
+**Structure** (reference power):
+```
+power-appian-reference/
+├── POWER.md        # Frontmatter + usage instructions
+├── README.md       # Documentation
+└── steering/       # Focused reference files
+    ├── sail-grammar.md                    # Complete BNF grammar (154KB)
+    ├── sail-common-functions.md           # Top 50 functions with examples
+    ├── sail-common-mistakes.md            # Critical anti-patterns
+    ├── appian-design-best-practices.md    # Design standards (23KB)
+    └── appian-accessibility-guide.md      # A11Y guidelines (14KB)
+```
+
+**MCP Configuration** (persona powers only):
 ```json
 {
   "mcpServers": {
@@ -185,6 +205,8 @@ power-appian-atlas-<persona>/
   }
 }
 ```
+
+**Note**: `power-appian-reference` has no MCP server - it's a pure documentation power queried via subagent delegation.
 
 ---
 
@@ -347,6 +369,7 @@ All repositories are under `ram-020998`:
 - **power-appian-atlas-developer**: https://github.com/ram-020998/power-appian-atlas-developer
 - **power-appian-atlas-product-owner**: https://github.com/ram-020998/power-appian-atlas-product-owner
 - **power-appian-atlas-ux-designer**: https://github.com/ram-020998/power-appian-atlas-ux-designer
+- **power-appian-reference**: https://github.com/ram-020998/power-appian-reference
 
 ---
 
