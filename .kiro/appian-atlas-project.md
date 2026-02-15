@@ -10,9 +10,12 @@ Appian Atlas is a comprehensive system for parsing, storing, and exploring Appia
 
 ## Repository Structure
 
+This is the parent repository that aggregates all sub-repositories as Git submodules. GitHub Pages is hosted from the separate `atlas-docs` repo to avoid build failures caused by the private `appian-parser` submodule.
+
 ```
 appian-atlas/
-├── appian-parser/                      # Core parsing engine
+├── appian-parser/                      # Core parsing engine (private)
+├── atlas-docs/                         # GitHub Pages site (public)
 ├── gam-knowledge-base/                 # Data repository + MCP server
 ├── power-appian-atlas/                 # Landing page for powers
 ├── power-appian-atlas-developer/       # Developer persona power
@@ -116,7 +119,29 @@ pip install "appian-atlas @ git+https://github.com/ram-020998/gam-knowledge-base
 
 ---
 
-### 3. Powers (3 persona-specific repositories)
+### 3. atlas-docs
+
+**Purpose**: Public repository hosting the GitHub Pages site for Appian Atlas.
+
+**Key Details**:
+- Separated from `appian-atlas` to avoid GitHub Pages build failures caused by the private `appian-parser` submodule
+- Contains manually maintained static HTML content
+- Published at: https://ram-020998.github.io/atlas-docs/
+
+**Directory Structure**:
+```
+atlas-docs/
+├── index.html              # Landing page
+└── installation.html       # Installation guide
+```
+
+**Development**:
+- Edit HTML files directly
+- Push to `main` branch — Pages deploys automatically
+
+---
+
+### 4. Powers (3 persona-specific repositories)
 
 **Purpose**: Kiro Powers that provide persona-specific steering for exploring Appian applications.
 
@@ -315,7 +340,8 @@ If you need to rename the MCP server (e.g., from `gam-appian-kb` to `appian-atla
 
 All repositories are under `ram-020998`:
 
-- **appian-parser**: https://github.com/ram-020998/appian-parser
+- **appian-parser**: https://github.com/ram-020998/appian-parser (private)
+- **atlas-docs**: https://github.com/ram-020998/atlas-docs (GitHub Pages site)
 - **gam-knowledge-base**: https://github.com/ram-020998/gam-knowledge-base
 - **power-appian-atlas**: https://github.com/ram-020998/power-appian-atlas (landing page)
 - **power-appian-atlas-developer**: https://github.com/ram-020998/power-appian-atlas-developer
@@ -334,16 +360,9 @@ All repositories are under `ram-020998`:
 
 ### Initial Setup
 ```bash
-# Clone all repositories
-cd ~/repo
-mkdir appian-atlas && cd appian-atlas
-
-git clone git@github.com:ram-020998/appian-parser.git
-git clone git@github.com:ram-020998/gam-knowledge-base.git
-git clone git@github.com:ram-020998/power-appian-atlas.git
-git clone git@github.com:ram-020998/power-appian-atlas-developer.git
-git clone git@github.com:ram-020998/power-appian-atlas-product-owner.git
-git clone git@github.com:ram-020998/power-appian-atlas-ux-designer.git
+# Clone with all submodules
+git clone --recurse-submodules git@github.com:ram-020998/appian-atlas.git
+cd appian-atlas
 
 # Set up parser environment
 cd appian-parser
@@ -367,7 +386,7 @@ export GITHUB_TOKEN="your_token_here"
 
 ### Test Parser
 ```bash
-cd appian-atlas/appian-parser
+cd appian-parser
 source .venv/bin/activate
 python -m appian_parser dump test_data/sample.zip test_output/
 # Verify output structure
@@ -376,7 +395,7 @@ ls -la test_output/
 
 ### Test MCP Server
 ```bash
-cd appian-atlas/gam-knowledge-base
+cd gam-knowledge-base
 source .venv/bin/activate
 appian-atlas --github ram-020998/gam-knowledge-base
 # Server runs on stdio - appears to hang (normal)
@@ -386,7 +405,7 @@ appian-atlas --github ram-020998/gam-knowledge-base
 ### Test Powers
 1. Open Kiro IDE
 2. Powers tab → Add Power from Local Path
-3. Select `appian-atlas/power-appian-atlas-developer/`
+3. Select `power-appian-atlas-developer/`
 4. Test queries:
    - "What applications are available?"
    - "Give me an overview of SourceSelection"

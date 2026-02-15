@@ -4,17 +4,27 @@ AI-powered system for parsing, storing, and exploring Appian applications.
 
 ## Quick Start
 
-This folder contains all repositories for the Appian Atlas project:
+This is the parent repository that aggregates all Appian Atlas sub-repositories as Git submodules:
 
 ```
 appian-atlas/
 ├── appian-parser/                      # Appian application parser (private)
-├── atlas-docs/                         # GitHub Pages site
+├── atlas-docs/                         # GitHub Pages site (public)
 ├── gam-knowledge-base/                 # Data + MCP server
 ├── power-appian-atlas/                 # Powers landing page
 ├── power-appian-atlas-developer/       # Developer persona
 ├── power-appian-atlas-product-owner/   # Product Owner persona
 └── power-appian-atlas-ux-designer/     # UX Designer persona
+```
+
+### Clone with all submodules
+```bash
+git clone --recurse-submodules git@github.com:ram-020998/appian-atlas.git
+```
+
+### If already cloned, initialize submodules
+```bash
+git submodule update --init --recursive
 ```
 
 ## Documentation
@@ -36,9 +46,9 @@ See `.kiro/appian-atlas-project.md` for complete documentation including:
 
 All under `ram-020998`:
 - https://github.com/ram-020998/appian-parser (private)
+- https://github.com/ram-020998/atlas-docs (GitHub Pages site)
 - https://github.com/ram-020998/gam-knowledge-base
 - https://github.com/ram-020998/power-appian-atlas
 - https://github.com/ram-020998/power-appian-atlas-developer
 - https://github.com/ram-020998/power-appian-atlas-product-owner
 - https://github.com/ram-020998/power-appian-atlas-ux-designer
-- https://github.com/ram-020998/atlas-docs (GitHub Pages site)
