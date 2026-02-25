@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Appian Atlas — GitLab Migration Architecture Design</title>
+<style>
+  :root {
+    --primary: #6366f1;
+    --primary-light: #818cf8;
+    --primary-dark: #4f46e5;
+    --bg: #0f172a;
+    --bg-card: #1e293b;
+    --bg-card-alt: #334155;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-bright: #f8fafc;
+    --border: #334155;
+    --green: #22c55e;
+    --green-bg: rgba(34,197,94,0.1);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.1);
+    --yellow: #eab308;
+    --yellow-bg: rgba(234,179,8,0.1);
+    --blue: #3b82f6;
+    --blue-bg: rgba(59,130,246,0.1);
+    --cyan: #06b6d4;
+    --orange: #f97316;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+  .container { max-width:1200px; margin:0 auto; padding:0 24px; }
+
+  /* Header */
+  header { background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#1e1b4b 100%); border-bottom:1px solid var(--primary-dark); padding:48px 0 40px; }
+  header h1 { font-size:2.5rem; color:var(--text-bright); font-weight:700; }
+  header p.subtitle { font-size:1.15rem; color:var(--primary-light); margin-top:8px; }
+  .meta { display:flex; gap:24px; margin-top:20px; flex-wrap:wrap; }
+  .meta span { font-size:0.85rem; color:var(--text-muted); background:var(--bg-card); padding:4px 12px; border-radius:6px; }
+
+  /* Navigation */
+  nav { background:var(--bg-card); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
+  nav ul { list-style:none; display:flex; gap:0; overflow-x:auto; }
+  nav a { display:block; padding:14px 20px; color:var(--text-muted); text-decoration:none; font-size:0.875rem; font-weight:500; white-space:nowrap; border-bottom:2px solid transparent; transition:all 0.2s; }
+  nav a:hover, nav a.active { color:var(--primary-light); border-bottom-color:var(--primary); }
+
+  /* Sections */
+  section { padding:48px 0; border-bottom:1px solid var(--border); }
+  section:last-child { border-bottom:none; }
+  h2 { font-size:1.75rem; color:var(--text-bright); margin-bottom:24px; padding-bottom:12px; border-bottom:2px solid var(--primary-dark); }
+  h3 { font-size:1.25rem; color:var(--primary-light); margin:28px 0 16px; }
+  h4 { font-size:1rem; color:var(--text-bright); margin:20px 0 10px; }
+  p { margin-bottom:14px; }
+
+  /* Cards */
+  .card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:20px; }
+  .card-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+  .card h4 { margin-top:0; }
+  .card-icon { font-size:1.5rem; margin-bottom:8px; }
+
+  /* Diagrams */
+  .diagram { background:#0d1117; border:1px solid var(--border); border-radius:12px; padding:32px; margin:24px 0; overflow-x:auto; }
+  .diagram pre { color:#c9d1d9; font-family:'JetBrains Mono','Fira Code',monospace; font-size:0.8rem; line-height:1.7; white-space:pre; }
+
+  /* SVG Diagrams */
+  .svg-diagram { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:32px; margin:24px 0; text-align:center; overflow-x:auto; }
+  svg text { font-family:'Segoe UI',system-ui,sans-serif; }
+
+  /* Tables */
+  table { width:100%; border-collapse:collapse; margin:20px 0; font-size:0.9rem; }
+  th { background:var(--bg-card-alt); color:var(--text-bright); padding:12px 16px; text-align:left; font-weight:600; border:1px solid var(--border); }
+  td { padding:10px 16px; border:1px solid var(--border); vertical-align:top; }
+  tr:nth-child(even) td { background:rgba(30,41,59,0.5); }
+
+  /* Badges */
+  .badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.75rem; font-weight:600; }
+  .badge-green { background:var(--green-bg); color:var(--green); border:1px solid rgba(34,197,94,0.3); }
+  .badge-red { background:var(--red-bg); color:var(--red); border:1px solid rgba(239,68,68,0.3); }
+  .badge-yellow { background:var(--yellow-bg); color:var(--yellow); border:1px solid rgba(234,179,8,0.3); }
+  .badge-blue { background:var(--blue-bg); color:var(--blue); border:1px solid rgba(59,130,246,0.3); }
+
+  /* Lists */
+  ul, ol { margin:10px 0 14px 24px; }
+  li { margin-bottom:6px; }
+
+  /* Code */
+  code { background:var(--bg-card-alt); padding:2px 6px; border-radius:4px; font-family:'JetBrains Mono','Fira Code',monospace; font-size:0.85em; color:var(--cyan); }
+
+  /* Callouts */
+  .callout { border-left:4px solid; border-radius:0 8px 8px 0; padding:16px 20px; margin:20px 0; }
+  .callout-info { border-color:var(--blue); background:var(--blue-bg); }
+  .callout-warn { border-color:var(--yellow); background:var(--yellow-bg); }
+  .callout-success { border-color:var(--green); background:var(--green-bg); }
+  .callout-title { font-weight:600; margin-bottom:6px; }
+
+  /* Flow arrows */
+  .flow-arrow { text-align:center; font-size:1.5rem; color:var(--primary-light); margin:8px 0; }
+
+  /* Two column layout */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  @media(max-width:768px) { .two-col { grid-template-columns:1fr; } }
+
+  /* Timeline */
+  .timeline { position:relative; padding-left:32px; }
+  .timeline::before { content:''; position:absolute; left:12px; top:0; bottom:0; width:2px; background:var(--primary-dark); }
+  .timeline-item { position:relative; margin-bottom:24px; }
+  .timeline-item::before { content:''; position:absolute; left:-26px; top:6px; width:12px; height:12px; border-radius:50%; background:var(--primary); border:2px solid var(--bg); }
+  .timeline-item h4 { margin-top:0; }
+  .timeline-item .duration { font-size:0.8rem; color:var(--text-muted); }
+
+  /* Footer */
+  footer { background:var(--bg-card); border-top:1px solid var(--border); padding:32px 0; text-align:center; color:var(--text-muted); font-size:0.85rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>Appian Atlas — Architecture Design</h1>
+    <p class="subtitle">GitLab Migration &amp; Standardization</p>
+    <div class="meta">
+      <span>📋 Version 2.2</span>
+      <span>📅 February 25, 2026</span>
+      <span>🔖 Status: Proposal — Pending Approval</span>
+      <span>👥 Appian Atlas Team</span>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="container">
+    <ul>
+      <li><a href="#summary">Summary</a></li>
+      <li><a href="#current">Current State</a></li>
+      <li><a href="#proposed">Proposed State</a></li>
+      <li><a href="#data-flow">Data Flow</a></li>
+      <li><a href="#server-arch">Server Architecture</a></li>
+      <li><a href="#cicd">CI/CD Pipeline</a></li>
+      <li><a href="#alignment">MCP Alignment</a></li>
+      <li><a href="#api-mapping">API Mapping</a></li>
+      <li><a href="#repo-mapping">Repo Mapping</a></li>
+      <li><a href="#decisions">Decisions</a></li>
+      <li><a href="#timeline">Timeline</a></li>
+      <li><a href="#risks">Risks</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- EXECUTIVE SUMMARY -->
+<!-- ============================================================ -->
+<section id="summary">
+<div class="container">
+  <h2>Executive Summary</h2>
+  <p>This document describes the architecture for migrating Appian Atlas from GitHub to GitLab, following the exact patterns established by Appian's existing <code>gitlab-mcp-server</code>.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <h4>4 Purpose-Built Repos</h4>
+      <p>Reorganize from 8 GitHub repos into 4 GitLab repos with clear separation of concerns.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🐳</div>
+      <h4>Docker Containerization</h4>
+      <p>Standardized deployment using Docker containers from GitLab's container registry.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔧</div>
+      <h4>Zero Tool Changes</h4>
+      <p>All 9 MCP tools maintain exact interfaces. Zero user-facing functional changes.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔒</div>
+      <h4>Internal Infrastructure</h4>
+      <p>All data and code within Appian's GitLab. Read-only token enforcement at startup.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CURRENT ARCHITECTURE -->
+<!-- ============================================================ -->
+<section id="current">
+<div class="container">
+  <h2>Current Architecture (GitHub)</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>Repository Structure</h3>
+      <div class="diagram"><pre>GitHub (ram-020998)
+├── appian-parser          <span style="color:#6b7280"># Private — Appian app parser</span>
+├── atlas-docs             <span style="color:#6b7280"># Public — GitHub Pages</span>
+├── gam-knowledge-base     <span style="color:#6b7280"># Data + MCP server (monorepo)</span>
+│   ├── data/              <span style="color:#6b7280"># Parsed JSON data</span>
+│   └── mcp_server/        <span style="color:#6b7280"># Python MCP server</span>
+├── power-appian-atlas
+├── power-appian-atlas-developer
+├── power-appian-atlas-product-owner
+├── power-appian-atlas-ux-designer
+└── power-appian-reference</pre></div>
+      <p><strong>8 repositories</strong> across GitHub, with data and server code co-located in a monorepo and 5 separate power repos.</p>
+    </div>
+    <div>
+      <h3>Current Limitations</h3>
+      <div class="card" style="border-left:3px solid var(--red);">
+        <ul>
+          <li><strong>External dependency</strong> — relies on public GitHub</li>
+          <li><strong>Monorepo</strong> — server code + data in same repo despite different change cadences</li>
+          <li><strong>Fragmented powers</strong> — 5 separate repos for power configs</li>
+          <li><strong>Inconsistent deployment</strong> — different pattern from other Appian MCP servers</li>
+          <li><strong>Security</strong> — data hosted outside Appian infrastructure</li>
+          <li><strong>Token management</strong> — requires separate GitHub PATs</li>
+          <li><strong>No containerization</strong> — Python package on user machines</li>
+          <li><strong>No automated data refresh</strong> — manual updates</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3>Current Data Flow</h3>
+  <div class="svg-diagram">
+    <svg width="700" height="420" viewBox="0 0 700 420">
+      <!-- User IDE -->
+      <rect x="50" y="10" width="600" height="240" rx="12" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <text x="350" y="35" text-anchor="middle" fill="#94a3b8" font-size="13" font-weight="600">User's IDE (Kiro)</text>
+
+      <!-- Power -->
+      <rect x="150" y="50" width="400" height="60" rx="8" fill="#1e1b4b" stroke="#6366f1" stroke-width="1.5"/>
+      <text x="350" y="77" text-anchor="middle" fill="#c7d2fe" font-size="12" font-weight="600">Appian Atlas Power (GitHub URL)</text>
+      <text x="350" y="97" text-anchor="middle" fill="#94a3b8" font-size="11">Steering instructions + MCP server config</text>
+
+      <!-- Arrow -->
+      <line x1="350" y1="110" x2="350" y2="135" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+
+      <!-- MCP Server -->
+      <rect x="100" y="135" width="500" height="80" rx="8" fill="#1a1a2e" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="350" y="162" text-anchor="middle" fill="#fca5a5" font-size="12" font-weight="600">MCP Server (Python package on user machine)</text>
+      <text x="350" y="180" text-anchor="middle" fill="#94a3b8" font-size="11">pipx install git+https://github.com/...</text>
+      <text x="350" y="198" text-anchor="middle" fill="#94a3b8" font-size="11">Tools: list_applications, search_bundles, etc.</text>
+
+      <!-- Arrow out of IDE -->
+      <line x1="350" y1="215" x2="350" y2="280" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+
+      <!-- GitHub API -->
+      <rect x="225" y="280" width="250" height="50" rx="8" fill="#1c1917" stroke="#f97316" stroke-width="1.5"/>
+      <text x="350" y="302" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="600">GitHub API</text>
+      <text x="350" y="320" text-anchor="middle" fill="#94a3b8" font-size="11">Public Internet</text>
+
+      <!-- Arrow -->
+      <line x1="350" y1="330" x2="350" y2="355" stroke="#f97316" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+
+      <!-- GitHub Repo -->
+      <rect x="200" y="355" width="300" height="50" rx="8" fill="#1c1917" stroke="#f97316" stroke-width="1.5"/>
+      <text x="350" y="377" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="600">gam-knowledge-base (GitHub)</text>
+      <text x="350" y="395" text-anchor="middle" fill="#94a3b8" font-size="11">data/ folder — JSON files</text>
+
+      <!-- Arrow markers -->
+      <defs>
+        <marker id="arrow-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#6366f1"/></marker>
+        <marker id="arrow-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#ef4444"/></marker>
+        <marker id="arrow-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f97316"/></marker>
+      </defs>
+    </svg>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PROPOSED ARCHITECTURE -->
+<!-- ============================================================ -->
+<section id="proposed">
+<div class="container">
+  <h2>Proposed Architecture (GitLab)</h2>
+
+  <h3>Repository Structure — 4 Repos</h3>
+  <div class="svg-diagram">
+    <svg width="800" height="320" viewBox="0 0 800 320">
+      <!-- Group box -->
+      <rect x="20" y="10" width="760" height="300" rx="12" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <text x="400" y="38" text-anchor="middle" fill="#94a3b8" font-size="13" font-weight="600">gitlab.appian-stratus.com/appian/atlas/</text>
+
+      <!-- atlas-mcp-server -->
+      <rect x="40" y="55" width="340" height="110" rx="8" fill="#1e1b4b" stroke="#6366f1" stroke-width="1.5"/>
+      <text x="210" y="78" text-anchor="middle" fill="#c7d2fe" font-size="13" font-weight="700">atlas-mcp-server</text>
+      <text x="210" y="98" text-anchor="middle" fill="#94a3b8" font-size="11">Docker-containerized MCP server</text>
+      <text x="210" y="115" text-anchor="middle" fill="#94a3b8" font-size="11">CI/CD → GitLab Container Registry</text>
+      <text x="210" y="132" text-anchor="middle" fill="#94a3b8" font-size="11">atlas_mcp/ package, Chainguard image</text>
+      <text x="210" y="152" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="600">🐳 Docker | 🔄 CI/CD | 📦 Registry</text>
+
+      <!-- solutions-knowledge-base -->
+      <rect x="420" y="55" width="340" height="110" rx="8" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="590" y="78" text-anchor="middle" fill="#86efac" font-size="13" font-weight="700">solutions-knowledge-base</text>
+      <text x="590" y="98" text-anchor="middle" fill="#94a3b8" font-size="11">Parsed application data (JSON)</text>
+      <text x="590" y="115" text-anchor="middle" fill="#94a3b8" font-size="11">ClauseAutomation/, SourceSelection/</text>
+      <text x="590" y="132" text-anchor="middle" fill="#94a3b8" font-size="11">Daily scheduled pipeline (deferred)</text>
+      <text x="590" y="152" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="600">📊 Data | 🔄 Daily Refresh</text>
+
+      <!-- atlas-parser -->
+      <rect x="40" y="190" width="340" height="100" rx="8" fill="#422006" stroke="#f97316" stroke-width="1.5"/>
+      <text x="210" y="213" text-anchor="middle" fill="#fdba74" font-size="13" font-weight="700">atlas-parser</text>
+      <text x="210" y="233" text-anchor="middle" fill="#94a3b8" font-size="11">Appian application parser tool</text>
+      <text x="210" y="250" text-anchor="middle" fill="#94a3b8" font-size="11">Consumed as dependency by data pipeline</text>
+      <text x="210" y="275" text-anchor="middle" fill="#f97316" font-size="10" font-weight="600">⚙️ Parser | 📥 Read-only Dependency</text>
+
+      <!-- atlas-kiro-powers -->
+      <rect x="420" y="190" width="340" height="100" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+      <text x="590" y="213" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="700">atlas-kiro-powers</text>
+      <text x="590" y="233" text-anchor="middle" fill="#94a3b8" font-size="11">All 5 Kiro powers consolidated</text>
+      <text x="590" y="250" text-anchor="middle" fill="#94a3b8" font-size="11">atlas/ developer/ product-owner/ ux/ reference/</text>
+      <text x="590" y="275" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="600">📝 Steering Docs | ⚡ MCP Config</text>
+
+      <!-- Arrows: mcp-server reads from knowledge-base -->
+      <line x1="380" y1="110" x2="420" y2="110" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-light-purple)"/>
+      <text x="400" y="100" text-anchor="middle" fill="#818cf8" font-size="9" transform="rotate(-90,400,100)">API</text>
+
+      <!-- Arrow: knowledge-base uses parser -->
+      <line x1="420" y1="165" x2="380" y2="200" stroke="#f97316" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-orange2)"/>
+
+      <defs>
+        <marker id="arrow-light-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#818cf8"/></marker>
+        <marker id="arrow-orange2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f97316"/></marker>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-title">💡 Design Principle: Separation of Concerns</div>
+    <p>Each repo has a single responsibility with its own change cadence, CI/CD, and ownership. The MCP server code changes infrequently; the data refreshes daily; the parser evolves independently; the powers are lightweight steering docs.</p>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- DATA FLOW -->
+<!-- ============================================================ -->
+<section id="data-flow">
+<div class="container">
+  <h2>Proposed Data Flow</h2>
+
+  <div class="svg-diagram">
+    <svg width="750" height="520" viewBox="0 0 750 520">
+      <!-- User IDE box -->
+      <rect x="50" y="10" width="650" height="270" rx="12" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <text x="375" y="35" text-anchor="middle" fill="#94a3b8" font-size="13" font-weight="600">User's IDE (Kiro)</text>
+
+      <!-- Power -->
+      <rect x="175" y="50" width="400" height="55" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+      <text x="375" y="73" text-anchor="middle" fill="#93c5fd" font-size="12" font-weight="600">Appian Atlas Power (from atlas-kiro-powers)</text>
+      <text x="375" y="93" text-anchor="middle" fill="#94a3b8" font-size="11">Steering instructions + MCP server config</text>
+
+      <!-- Arrow -->
+      <line x1="375" y1="105" x2="375" y2="130" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+
+      <!-- Docker Container -->
+      <rect x="100" y="130" width="550" height="120" rx="8" fill="#1e1b4b" stroke="#22c55e" stroke-width="2"/>
+      <text x="375" y="155" text-anchor="middle" fill="#86efac" font-size="12" font-weight="700">🐳 Docker Container (GitLab Registry)</text>
+      <text x="375" y="175" text-anchor="middle" fill="#c7d2fe" font-size="11">registry.gitlab.appian-stratus.com/appian/atlas/atlas-mcp-server:latest</text>
+      <text x="375" y="195" text-anchor="middle" fill="#94a3b8" font-size="11">Isolated container — no local Python needed</text>
+      <text x="375" y="215" text-anchor="middle" fill="#94a3b8" font-size="11">Data fetched at runtime via GitLab API (NOT baked in)</text>
+      <text x="375" y="238" text-anchor="middle" fill="#818cf8" font-size="10">Tools: list_applications | search_bundles | get_dependencies | ...</text>
+
+      <!-- Arrow out of IDE -->
+      <line x1="375" y1="250" x2="375" y2="310" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+      <text x="390" y="295" fill="#94a3b8" font-size="10">PRIVATE-TOKEN</text>
+
+      <!-- GitLab API -->
+      <rect x="225" y="310" width="300" height="50" rx="8" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="375" y="332" text-anchor="middle" fill="#86efac" font-size="12" font-weight="600">GitLab API</text>
+      <text x="375" y="350" text-anchor="middle" fill="#94a3b8" font-size="11">Internal Network</text>
+
+      <!-- Arrow -->
+      <line x1="375" y1="360" x2="375" y2="390" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+      <!-- Knowledge Base Repo -->
+      <rect x="150" y="390" width="450" height="70" rx="8" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="375" y="415" text-anchor="middle" fill="#86efac" font-size="12" font-weight="600">solutions-knowledge-base (GitLab)</text>
+      <text x="375" y="435" text-anchor="middle" fill="#94a3b8" font-size="11">data/ folder — JSON files — Updated daily by scheduled pipeline</text>
+      <text x="375" y="452" text-anchor="middle" fill="#94a3b8" font-size="10">Project ID hardcoded in config.py as SOLUTIONS_KB_PROJECT_ID</text>
+
+      <!-- Labels -->
+      <rect x="560" y="315" width="130" height="24" rx="4" fill="var(--green-bg)" stroke="#22c55e" stroke-width="1"/>
+      <text x="625" y="332" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="600">✅ Internal Only</text>
+
+      <defs>
+        <marker id="arrow-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3b82f6"/></marker>
+        <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#22c55e"/></marker>
+      </defs>
+    </svg>
+  </div>
+
+  <h3>Data Packaging Decision</h3>
+  <div class="callout callout-success">
+    <div class="callout-title">✅ Decision: Runtime fetch via GitLab API — data NOT baked into Docker image</div>
+    <ul>
+      <li>Daily pipeline in <code>solutions-knowledge-base</code> regenerates data from dev environments</li>
+      <li>If data were baked in, users would need <code>docker pull</code> daily — bad UX, leads to stale results</li>
+      <li>Runtime fetch means the server always gets the latest data</li>
+      <li>LRU cache + pinned anchor files handle performance</li>
+      <li>Users only re-pull the Docker image when server <em>code</em> changes (infrequent)</li>
+    </ul>
+  </div>
+
+  <h3>Data Pipeline Flow (Deferred)</h3>
+  <div class="callout callout-warn">
+    <div class="callout-title">⏳ Deferred to separate implementation plan</div>
+    <p>The daily data pipeline will be specified after the core migration is complete.</p>
+  </div>
+  <div class="diagram"><pre>solutions-knowledge-base CI (daily scheduled pipeline)
+  → pulls atlas-parser (as pip dependency or Docker image)
+  → runs parser against Appian dev environments
+  → commits updated JSON files to own repo
+
+No cross-repo write permissions needed.
+atlas-parser is consumed as a read-only dependency.</pre></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SERVER INTERNAL ARCHITECTURE -->
+<!-- ============================================================ -->
+<section id="server-arch">
+<div class="container">
+  <h2>Server Internal Architecture — atlas-mcp-server</h2>
+
+  <h3>Package Structure</h3>
+  <div class="diagram"><pre>atlas-mcp-server/
+├── main.py                        <span style="color:#22c55e"># Async entry point (asyncio.run)</span>
+├── mcp.json                       <span style="color:#6b7280"># Reference MCP configuration</span>
+├── requirements.txt               <span style="color:#6b7280"># Production deps only</span>
+├── requirements-dev.txt           <span style="color:#6b7280"># Dev/test deps (includes prod via -r)</span>
+├── Dockerfile                     <span style="color:#6b7280"># Production — Chainguard multi-stage</span>
+├── Dockerfile.local               <span style="color:#6b7280"># Local dev — python:3.11-slim</span>
+├── docker-compose.yml             <span style="color:#6b7280"># Local container testing</span>
+├── Makefile                       <span style="color:#6b7280"># Dev task runner</span>
+├── tox.ini                        <span style="color:#6b7280"># Test/lint orchestration</span>
+├── .gitlab-ci.yml                 <span style="color:#6b7280"># CI/CD pipeline</span>
+├── .env.example                   <span style="color:#6b7280"># Env var reference for developers</span>
+│
+├── atlas_mcp/                     <span style="color:#22c55e"># Main package</span>
+│   ├── __init__.py                <span style="color:#6b7280"># __version__, __author__</span>
+│   ├── config.py                  <span style="color:#22c55e"># Config + hardcoded SOLUTIONS_KB_PROJECT_ID</span>
+│   ├── server.py                  <span style="color:#22c55e"># MCP server setup + tool routing</span>
+│   ├── client.py                  <span style="color:#22c55e"># GitLab HTTP client (session reuse)</span>
+│   ├── models.py                  <span style="color:#22c55e"># Data models + tool schemas</span>
+│   ├── datasource.py              <span style="color:#22c55e"># GitLab data source (LRU cache)</span>
+│   ├── token_validator.py         <span style="color:#22c55e"># Read-only token enforcement</span>
+│   ├── logging_config.py          <span style="color:#22c55e"># Structured logging (file + stderr)</span>
+│   ├── utils.py                   <span style="color:#6b7280"># Utility functions</span>
+│   └── tools/                     <span style="color:#22c55e"># Tool implementations</span>
+│       ├── application.py         <span style="color:#6b7280"># list_applications, get_app_overview</span>
+│       ├── bundle.py              <span style="color:#6b7280"># search_bundles, get_bundle</span>
+│       ├── object.py              <span style="color:#6b7280"># search_objects, get_dependencies, get_object_detail</span>
+│       └── orphan.py              <span style="color:#6b7280"># list_orphans, get_orphan</span>
+│
+├── tests/                         <span style="color:#6b7280"># 80% coverage minimum</span>
+│   ├── test_basic.py, test_config.py, test_client.py, test_utils.py
+│   ├── test_server.py, test_token_validation.py, test_datasource.py
+│   └── test_application.py, test_bundle.py, test_object.py, test_orphan.py
+│
+└── docs/
+    ├── SECURITY.md
+    └── USAGE_EXAMPLES.md</pre></div>
+
+  <h3>Startup Sequence</h3>
+  <div class="svg-diagram">
+    <svg width="700" height="340" viewBox="0 0 700 340">
+      <!-- Step 1 -->
+      <rect x="50" y="10" width="600" height="40" rx="6" fill="#1e1b4b" stroke="#6366f1" stroke-width="1"/>
+      <text x="350" y="35" text-anchor="middle" fill="#c7d2fe" font-size="12" font-weight="600">1. setup_logging() → configure file + stderr handlers</text>
+
+      <line x1="350" y1="50" x2="350" y2="65" stroke="#475569" stroke-width="1" marker-end="url(#arrow-gray)"/>
+
+      <!-- Step 2 -->
+      <rect x="50" y="65" width="600" height="40" rx="6" fill="#1e1b4b" stroke="#6366f1" stroke-width="1"/>
+      <text x="350" y="90" text-anchor="middle" fill="#c7d2fe" font-size="12" font-weight="600">2. config.initialize() → read GITLAB_TOKEN, set SOLUTIONS_KB_PROJECT_ID</text>
+
+      <line x1="350" y1="105" x2="350" y2="120" stroke="#475569" stroke-width="1" marker-end="url(#arrow-gray)"/>
+
+      <!-- Step 3 -->
+      <rect x="50" y="120" width="600" height="40" rx="6" fill="#422006" stroke="#f97316" stroke-width="1"/>
+      <text x="350" y="145" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="600">3. config.ensure_token_validated() → reject write-scoped tokens</text>
+
+      <line x1="350" y1="160" x2="350" y2="175" stroke="#475569" stroke-width="1" marker-end="url(#arrow-gray)"/>
+
+      <!-- Step 4 -->
+      <rect x="50" y="175" width="600" height="40" rx="6" fill="#1e1b4b" stroke="#6366f1" stroke-width="1"/>
+      <text x="350" y="200" text-anchor="middle" fill="#c7d2fe" font-size="12" font-weight="600">4. AtlasMCPServer() → register 9 tools, set up routing</text>
+
+      <line x1="350" y1="215" x2="350" y2="230" stroke="#475569" stroke-width="1" marker-end="url(#arrow-gray)"/>
+
+      <!-- Step 5 -->
+      <rect x="50" y="230" width="600" height="40" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="350" y="255" text-anchor="middle" fill="#86efac" font-size="12" font-weight="700">5. stdio_server() → MCP server READY, accepting requests</text>
+
+      <!-- Error paths -->
+      <rect x="50" y="290" width="280" height="35" rx="6" fill="#450a0a" stroke="#ef4444" stroke-width="1"/>
+      <text x="190" y="312" text-anchor="middle" fill="#fca5a5" font-size="11">Token invalid → stderr instructions + exit(1)</text>
+
+      <rect x="370" y="290" width="280" height="35" rx="6" fill="#450a0a" stroke="#ef4444" stroke-width="1"/>
+      <text x="510" y="312" text-anchor="middle" fill="#fca5a5" font-size="11">Config error → stderr + log file path + exit(1)</text>
+
+      <defs>
+        <marker id="arrow-gray" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#475569"/></marker>
+      </defs>
+    </svg>
+  </div>
+
+  <h3>Module Interaction</h3>
+  <div class="svg-diagram">
+    <svg width="750" height="380" viewBox="0 0 750 380">
+      <!-- main.py -->
+      <rect x="300" y="10" width="150" height="40" rx="6" fill="#1e1b4b" stroke="#6366f1" stroke-width="1.5"/>
+      <text x="375" y="35" text-anchor="middle" fill="#c7d2fe" font-size="12" font-weight="700">main.py</text>
+
+      <!-- Lines from main -->
+      <line x1="330" y1="50" x2="130" y2="80" stroke="#475569" stroke-width="1"/>
+      <line x1="375" y1="50" x2="375" y2="80" stroke="#475569" stroke-width="1"/>
+      <line x1="420" y1="50" x2="620" y2="80" stroke="#475569" stroke-width="1"/>
+
+      <!-- config.py -->
+      <rect x="50" y="80" width="160" height="40" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+      <text x="130" y="105" text-anchor="middle" fill="#86efac" font-size="11" font-weight="600">config.py</text>
+
+      <!-- logging_config.py -->
+      <rect x="295" y="80" width="160" height="40" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+      <text x="375" y="105" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="600">logging_config.py</text>
+
+      <!-- token_validator.py -->
+      <rect x="540" y="80" width="160" height="40" rx="6" fill="#422006" stroke="#f97316" stroke-width="1"/>
+      <text x="620" y="105" text-anchor="middle" fill="#fdba74" font-size="11" font-weight="600">token_validator.py</text>
+
+      <!-- server.py -->
+      <rect x="275" y="160" width="200" height="40" rx="6" fill="#1e1b4b" stroke="#818cf8" stroke-width="1.5"/>
+      <text x="375" y="185" text-anchor="middle" fill="#c7d2fe" font-size="12" font-weight="700">server.py (AtlasMCPServer)</text>
+
+      <line x1="375" y1="120" x2="375" y2="160" stroke="#475569" stroke-width="1"/>
+
+      <!-- Lines from server to tools -->
+      <line x1="310" y1="200" x2="130" y2="240" stroke="#818cf8" stroke-width="1"/>
+      <line x1="350" y1="200" x2="310" y2="240" stroke="#818cf8" stroke-width="1"/>
+      <line x1="400" y1="200" x2="490" y2="240" stroke="#818cf8" stroke-width="1"/>
+      <line x1="440" y1="200" x2="650" y2="240" stroke="#818cf8" stroke-width="1"/>
+
+      <!-- Tools -->
+      <rect x="50" y="240" width="160" height="35" rx="6" fill="#312e81" stroke="#818cf8" stroke-width="1"/>
+      <text x="130" y="262" text-anchor="middle" fill="#c7d2fe" font-size="11">tools/application.py</text>
+
+      <rect x="230" y="240" width="160" height="35" rx="6" fill="#312e81" stroke="#818cf8" stroke-width="1"/>
+      <text x="310" y="262" text-anchor="middle" fill="#c7d2fe" font-size="11">tools/bundle.py</text>
+
+      <rect x="410" y="240" width="160" height="35" rx="6" fill="#312e81" stroke="#818cf8" stroke-width="1"/>
+      <text x="490" y="262" text-anchor="middle" fill="#c7d2fe" font-size="11">tools/object.py</text>
+
+      <rect x="590" y="240" width="140" height="35" rx="6" fill="#312e81" stroke="#818cf8" stroke-width="1"/>
+      <text x="660" y="262" text-anchor="middle" fill="#c7d2fe" font-size="11">tools/orphan.py</text>
+
+      <!-- All tools point to datasource -->
+      <line x1="130" y1="275" x2="375" y2="310" stroke="#22c55e" stroke-width="1"/>
+      <line x1="310" y1="275" x2="375" y2="310" stroke="#22c55e" stroke-width="1"/>
+      <line x1="490" y1="275" x2="375" y2="310" stroke="#22c55e" stroke-width="1"/>
+      <line x1="660" y1="275" x2="375" y2="310" stroke="#22c55e" stroke-width="1"/>
+
+      <!-- datasource.py -->
+      <rect x="250" y="305" width="250" height="40" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="375" y="330" text-anchor="middle" fill="#86efac" font-size="12" font-weight="700">datasource.py → GitLab API</text>
+
+      <!-- client.py -->
+      <rect x="50" y="305" width="140" height="40" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+      <text x="120" y="330" text-anchor="middle" fill="#86efac" font-size="11">client.py (HTTP)</text>
+      <line x1="190" y1="325" x2="250" y2="325" stroke="#22c55e" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <!-- models.py -->
+      <rect x="560" y="305" width="140" height="40" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+      <text x="630" y="330" text-anchor="middle" fill="#93c5fd" font-size="11">models.py</text>
+      <line x1="500" y1="325" x2="560" y2="325" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <!-- models also used by server -->
+      <line x1="630" y1="305" x2="475" y2="185" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4,3"/>
+    </svg>
+  </div>
+
+  <h3>MCP Tools (9 — Unchanged)</h3>
+  <table>
+    <tr><th>Tool</th><th>Module</th><th>Description</th><th>Status</th></tr>
+    <tr><td><code>list_applications</code></td><td>application.py</td><td>Lists available applications</td><td><span class="badge badge-green">Unchanged</span></td></tr>
+    <tr><td><code>get_app_overview</code></td><td>application.py</td><td>Returns comprehensive app map</td><td><span class="badge badge-green">Unchanged</span></td></tr>
+    <tr><td><code>search_bundles</code></td><td>bundle.py</td><td>Finds bundles by keyword</td><td><span class="badge badge-green">Unchanged</span></td></tr>
+    <tr><td><code>get_bundle</code></td><td>bundle.py</td><td>Loads bundle at requested detail level</td><td><span class="badge badge-green">Unchanged</span></td></tr>
+    <tr><td><code>search_objects</code></td><td>object.py</td><td>Searches parsed objects by name</td><td><span class="badge badge-green">Unchanged</span></td></tr>
+    <tr><td><code>get_dependencies</code></td><td>object.py</td><td>Returns dependency subgraph</td><td><span class="badge badge-green">Unchanged</span></td></tr>
+    <tr><td><code>get_object_detail</code></td><td>object.py</td><td>Returns object info by UUID</td><td><span class="badge badge-green">Unchanged</span></td></tr>
+    <tr><td><code>list_orphans</code></td><td>orphan.py</td><td>Lists unreachable objects</td><td><span class="badge badge-green">Unchanged</span></td></tr>
+    <tr><td><code>get_orphan</code></td><td>orphan.py</td><td>Returns orphan detail with code</td><td><span class="badge badge-green">Unchanged</span></td></tr>
+  </table>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CI/CD PIPELINE -->
+<!-- ============================================================ -->
+<section id="cicd">
+<div class="container">
+  <h2>CI/CD Pipeline — atlas-mcp-server</h2>
+
+  <div class="svg-diagram">
+    <svg width="750" height="160" viewBox="0 0 750 160">
+      <!-- Lint -->
+      <rect x="20" y="40" width="130" height="70" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+      <text x="85" y="65" text-anchor="middle" fill="#93c5fd" font-size="12" font-weight="700">Lint</text>
+      <text x="85" y="82" text-anchor="middle" fill="#94a3b8" font-size="10">tox -e lint</text>
+      <text x="85" y="97" text-anchor="middle" fill="#94a3b8" font-size="10">flake8 + black + isort</text>
+
+      <line x1="150" y1="75" x2="175" y2="75" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-gray2)"/>
+
+      <!-- Test -->
+      <rect x="175" y="40" width="130" height="70" rx="8" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="240" y="65" text-anchor="middle" fill="#86efac" font-size="12" font-weight="700">Test</text>
+      <text x="240" y="82" text-anchor="middle" fill="#94a3b8" font-size="10">tox -e py311</text>
+      <text x="240" y="97" text-anchor="middle" fill="#94a3b8" font-size="10">80% coverage min</text>
+
+      <line x1="305" y1="75" x2="330" y2="75" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-gray2)"/>
+
+      <!-- Build -->
+      <rect x="330" y="40" width="130" height="70" rx="8" fill="#422006" stroke="#f97316" stroke-width="1.5"/>
+      <text x="395" y="65" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="700">Build</text>
+      <text x="395" y="82" text-anchor="middle" fill="#94a3b8" font-size="10">Chainguard image</text>
+      <text x="395" y="97" text-anchor="middle" fill="#94a3b8" font-size="10">Push :$COMMIT_SHA</text>
+
+      <line x1="460" y1="75" x2="485" y2="75" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-gray2)"/>
+
+      <!-- Tag -->
+      <rect x="485" y="40" width="130" height="70" rx="8" fill="#1e1b4b" stroke="#6366f1" stroke-width="1.5"/>
+      <text x="550" y="65" text-anchor="middle" fill="#c7d2fe" font-size="12" font-weight="700">Tag</text>
+      <text x="550" y="82" text-anchor="middle" fill="#94a3b8" font-size="10">crane copy → :latest</text>
+      <text x="550" y="97" text-anchor="middle" fill="#94a3b8" font-size="10">main branch only</text>
+
+      <line x1="615" y1="75" x2="640" y2="75" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-gray2)"/>
+
+      <!-- Security -->
+      <rect x="640" y="40" width="95" height="70" rx="8" fill="#450a0a" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="688" y="65" text-anchor="middle" fill="#fca5a5" font-size="12" font-weight="700">Security</text>
+      <text x="688" y="82" text-anchor="middle" fill="#94a3b8" font-size="10">Inherited from</text>
+      <text x="688" y="97" text-anchor="middle" fill="#94a3b8" font-size="10">shared templates</text>
+
+      <!-- Stage labels -->
+      <text x="85" y="130" text-anchor="middle" fill="#475569" font-size="10">Stage 1</text>
+      <text x="240" y="130" text-anchor="middle" fill="#475569" font-size="10">Stage 2</text>
+      <text x="395" y="130" text-anchor="middle" fill="#475569" font-size="10">Stage 3</text>
+      <text x="550" y="130" text-anchor="middle" fill="#475569" font-size="10">Stage 4</text>
+      <text x="688" y="130" text-anchor="middle" fill="#475569" font-size="10">Stage 5</text>
+
+      <!-- Trigger label -->
+      <text x="375" y="20" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600">Triggered on push to any branch (except tags and MR events)</text>
+
+      <defs>
+        <marker id="arrow-gray2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#475569"/></marker>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>Shared CI Templates</h4>
+      <ul>
+        <li><code>k8s-gitlab-runners</code> — k8s executors</li>
+        <li><code>stratus-pipeline-tools</code> — STRATUS_JWT auth, Docker build, security scanning</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Docker Image</h4>
+      <ul>
+        <li>Chainguard base from internal ECR</li>
+        <li>Non-root user (UID 65532)</li>
+        <li>Multi-stage build</li>
+        <li>Only production deps installed</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- MCP SERVER ALIGNMENT -->
+<!-- ============================================================ -->
+<section id="alignment">
+<div class="container">
+  <h2>Alignment with Existing Appian MCP Servers</h2>
+
+  <table>
+    <tr>
+      <th>Aspect</th>
+      <th>GitLab MCP Server</th>
+      <th>Jira MCP Server</th>
+      <th>Atlas MCP (Proposed)</th>
+    </tr>
+    <tr><td><strong>Repo</strong></td><td><code>appian/prod/gitlab-mcp-server</code></td><td><code>appian/prod/jira-mcp-proxy</code></td><td><code>appian/atlas/atlas-mcp-server</code></td></tr>
+    <tr><td><strong>Package</strong></td><td><code>gitlab_mcp/</code></td><td><code>jira_mcp/</code></td><td><code>atlas_mcp/</code></td></tr>
+    <tr><td><strong>Dockerfile</strong></td><td>Chainguard multi-stage</td><td>Chainguard multi-stage</td><td>Chainguard multi-stage</td></tr>
+    <tr><td><strong>CI/CD</strong></td><td>Shared templates + tox</td><td>Shared templates + tox</td><td>Shared templates + tox</td></tr>
+    <tr><td><strong>Token</strong></td><td><code>GITLAB_TOKEN</code></td><td><code>JIRA_TOKEN</code> + <code>JIRA_EMAIL</code></td><td><code>GITLAB_TOKEN</code> (reused)</td></tr>
+    <tr><td><strong>Deployment</strong></td><td>Docker from registry</td><td>Docker from registry</td><td>Docker from registry</td></tr>
+    <tr><td><strong>Token Validation</strong></td><td>Read-only enforced</td><td>Yes</td><td>Read-only enforced</td></tr>
+    <tr><td><strong>Logging</strong></td><td>File + stderr</td><td>File + stderr</td><td>File + stderr</td></tr>
+  </table>
+
+  <h3>User Configuration — All Three Servers</h3>
+  <div class="diagram"><pre>{
+  "mcpServers": {
+    <span style="color:#3b82f6">"gitlab"</span>: {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "--env", "GITLAB_TOKEN",
+               "registry.../gitlab-mcp-server:latest"],
+      "env": {"GITLAB_TOKEN": "${GITLAB_TOKEN}"}
+    },
+    <span style="color:#f97316">"jira-mcp-server"</span>: {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "--env", "JIRA_EMAIL", "--env", "JIRA_TOKEN", "--env", "JIRA_URL",
+               "registry.../jira-mcp-proxy:latest"],
+      "env": {"JIRA_URL": "https://appian-eng.atlassian.net", ...}
+    },
+    <span style="color:#22c55e">"appian-atlas"</span>: {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "--env", "GITLAB_TOKEN",
+               "registry.../atlas-mcp-server/atlas-mcp-server:latest"],
+      "env": {"GITLAB_TOKEN": "${GITLAB_TOKEN}"}
+    }
+  }
+}</pre></div>
+  <div class="callout callout-success">
+    <div class="callout-title">✅ Same pattern, same token, same Docker deployment</div>
+    <p>All three MCP servers follow identical deployment patterns. Atlas reuses the existing <code>GITLAB_TOKEN</code>. The <code>solutions-knowledge-base</code> project ID is hardcoded — users never see it.</p>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- API MAPPING -->
+<!-- ============================================================ -->
+<section id="api-mapping">
+<div class="container">
+  <h2>API Mapping — GitHub → GitLab</h2>
+  <p>The current <code>GitHubDataSource</code> uses exactly <strong>2 API operations</strong>. Both have direct 1:1 equivalents in the GitLab API.</p>
+  <table>
+    <tr><th>Operation</th><th>Current (GitHub)</th><th>Proposed (GitLab)</th></tr>
+    <tr><td><strong>Read file</strong></td><td><code>GET https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}</code></td><td><code>GET /api/v4/projects/{id}/repository/files/{path}/raw?ref={branch}</code></td></tr>
+    <tr><td><strong>List directory</strong></td><td><code>GET https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}</code></td><td><code>GET /api/v4/projects/{id}/repository/tree?path={path}&amp;ref={branch}</code></td></tr>
+    <tr><td><strong>Auth header</strong></td><td><code>Authorization: token {GITHUB_TOKEN}</code></td><td><code>PRIVATE-TOKEN: {GITLAB_TOKEN}</code></td></tr>
+  </table>
+  <div class="callout callout-info">
+    <div class="callout-title">💡 Low-Risk Refactor</div>
+    <p>The <code>{id}</code> is the <code>solutions-knowledge-base</code> project ID, <strong>hardcoded</strong> in <code>config.py</code> as <code>SOLUTIONS_KB_PROJECT_ID</code>. The MCP tools are completely decoupled from the data-fetching layer — they consume JSON and don't care about the source. All caching logic (LRU + pinned anchor files) remains unchanged.</p>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- REPO MAPPING -->
+<!-- ============================================================ -->
+<section id="repo-mapping">
+<div class="container">
+  <h2>Repository Mapping — GitHub → GitLab</h2>
+  <table>
+    <tr><th>GitHub (Current)</th><th>GitLab (Proposed)</th><th>Notes</th></tr>
+    <tr><td><code>gam-knowledge-base</code> (data + server)</td><td><code>atlas-mcp-server</code></td><td>Server code extracted, renamed</td></tr>
+    <tr><td><code>gam-knowledge-base</code> (data + server)</td><td><code>solutions-knowledge-base</code></td><td>Data extracted, renamed, daily pipeline added</td></tr>
+    <tr><td><code>appian-parser</code></td><td><code>atlas-parser</code></td><td>Renamed</td></tr>
+    <tr><td><code>atlas-docs</code></td><td><em>(dropped)</em></td><td>Not needed for GitLab</td></tr>
+    <tr><td><code>power-appian-atlas</code></td><td><code>atlas-kiro-powers/atlas/</code></td><td rowspan="5" style="vertical-align:middle;">5 repos → 1 repo with subdirectories</td></tr>
+    <tr><td><code>power-appian-atlas-developer</code></td><td><code>atlas-kiro-powers/atlas-developer/</code></td></tr>
+    <tr><td><code>power-appian-atlas-product-owner</code></td><td><code>atlas-kiro-powers/atlas-product-owner/</code></td></tr>
+    <tr><td><code>power-appian-atlas-ux-designer</code></td><td><code>atlas-kiro-powers/atlas-ux-designer/</code></td></tr>
+    <tr><td><code>power-appian-reference</code></td><td><code>atlas-kiro-powers/appian-reference/</code></td></tr>
+  </table>
+
+  <h3>Current vs Proposed</h3>
+  <table>
+    <tr><th>Aspect</th><th>Current (GitHub)</th><th>Proposed (GitLab)</th></tr>
+    <tr><td>Repository Host</td><td>GitHub (public)</td><td><span class="badge badge-green">GitLab (internal)</span></td></tr>
+    <tr><td>Repo Count</td><td>8 repos</td><td><span class="badge badge-green">4 repos</span></td></tr>
+    <tr><td>Installation</td><td><code>pipx install git+https://...</code></td><td><span class="badge badge-green">Docker container</span></td></tr>
+    <tr><td>Deployment</td><td>Python package on user machine</td><td><span class="badge badge-green">Docker (isolated)</span></td></tr>
+    <tr><td>Authentication</td><td>GitHub PAT</td><td><span class="badge badge-green">GitLab token (reused)</span></td></tr>
+    <tr><td>Data Access</td><td>GitHub API (public internet)</td><td><span class="badge badge-green">GitLab API (internal)</span></td></tr>
+    <tr><td>Data Freshness</td><td>Manual updates</td><td><span class="badge badge-green">Daily automated pipeline</span></td></tr>
+    <tr><td>CI/CD</td><td>None</td><td><span class="badge badge-green">GitLab CI/CD + shared templates</span></td></tr>
+    <tr><td>Security</td><td>External dependency</td><td><span class="badge badge-green">Internal + read-only token enforcement</span></td></tr>
+    <tr><td>Consistency</td><td>Different from other MCPs</td><td><span class="badge badge-green">Aligned with GitLab/Jira MCP</span></td></tr>
+  </table>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- KEY DECISIONS -->
+<!-- ============================================================ -->
+<section id="decisions">
+<div class="container">
+  <h2>Key Architectural Decisions</h2>
+  <table>
+    <tr><th>#</th><th>Decision</th><th>Rationale</th></tr>
+    <tr><td>1</td><td>Chainguard multi-stage Dockerfile</td><td>Match reference repo. Appian security compliance. Non-root user (UID 65532).</td></tr>
+    <tr><td>2</td><td>Shared CI templates</td><td>Appian-wide standard. k8s executors, STRATUS_JWT auth, crane tagging, tox testing.</td></tr>
+    <tr><td>3</td><td>Token validation at startup</td><td>Reject write-scoped tokens. Same pattern as reference.</td></tr>
+    <tr><td>4</td><td>Structured logging (file + stderr)</td><td>Startup/shutdown info, tool call tracing, log file in mcp.json directory.</td></tr>
+    <tr><td>5</td><td>Separate <code>client.py</code></td><td>Dedicated HTTP client with session reuse, pagination, error handling, timeouts.</td></tr>
+    <tr><td>6</td><td>Separate <code>models.py</code></td><td>Tool schemas and data models extracted from tool implementations.</td></tr>
+    <tr><td>7</td><td>Full dev tooling</td><td>Makefile, tox.ini, docker-compose.yml, Dockerfile.local — matching reference.</td></tr>
+    <tr><td>8</td><td>Full test suite</td><td>Per-module tests, 80% coverage threshold, Cobertura reporting.</td></tr>
+    <tr><td>9</td><td>4 separate repos</td><td>Clean separation of concerns — different change cadences, owners, CI needs.</td></tr>
+    <tr><td>10</td><td>Runtime data fetch via GitLab API</td><td>Data NOT baked into image. Users never re-pull for fresh data.</td></tr>
+    <tr><td>11</td><td>Split <code>requirements.txt</code></td><td>Prod deps separate from dev/test. Cleaner production Docker image.</td></tr>
+    <tr><td>12</td><td>Daily data pipeline deferred</td><td>Separate implementation plan after core migration is complete.</td></tr>
+    <tr><td>13</td><td>Hardcoded data project ID</td><td><code>SOLUTIONS_KB_PROJECT_ID</code> in config.py. Users only need <code>GITLAB_TOKEN</code>.</td></tr>
+    <tr><td>14</td><td>Ship <code>.env.example</code></td><td>Developer onboarding clarity. Documents all env vars with defaults.</td></tr>
+    <tr><td>15</td><td>Local-first development</td><td>All work in <code>appian-atlas-gitlab/</code> locally. GitLab repos created in Phase 6 after approvals. Phases 1–5 don't need GitLab.</td></tr>
+    <tr><td>16</td><td>GitHub repos kept as backup</td><td>No archiving or deprecation. Old repos remain as-is for reference and rollback.</td></tr>
+  </table>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- TIMELINE -->
+<!-- ============================================================ -->
+<section id="timeline">
+<div class="container">
+  <h2>Migration Timeline</h2>
+  <div class="timeline">
+    <div class="timeline-item">
+      <h4>Phase 0: Approvals &amp; Reviews</h4>
+      <span class="duration">2–3 weeks (parallel with planning)</span>
+      <p>Security review, infrastructure team approval, architecture review, stakeholder sign-off.</p>
+    </div>
+    <div class="timeline-item">
+      <h4>Phase 1: Local Project Setup</h4>
+      <span class="duration">1 week (parallel with Phase 0)</span>
+      <p>Create <code>appian-atlas-gitlab/</code> with 4 project folders. Copy data from GitHub repos. Initialize local git repos. No GitLab access needed.</p>
+    </div>
+    <div class="timeline-item">
+      <h4>Phase 2: Code Refactoring</h4>
+      <span class="duration">2 weeks</span>
+      <p><strong>Week 1:</strong> Core infrastructure — config.py, client.py, token_validator.py, logging_config.py, utils.py, main.py.<br>
+         <strong>Week 2:</strong> Server and tools — models.py, datasource.py, server.py, tools/ directory.</p>
+    </div>
+    <div class="timeline-item">
+      <h4>Phase 3: Containerization &amp; CI/CD</h4>
+      <span class="duration">1 week</span>
+      <p>Dockerfile (prod + local), docker-compose, .gitlab-ci.yml, Makefile, tox.ini, mcp.json, .env.example. Test pipeline end-to-end.</p>
+    </div>
+    <div class="timeline-item">
+      <h4>Phase 4: Testing</h4>
+      <span class="duration">1 week</span>
+      <p>Full test suite (80%+ coverage). Docker container testing. Token auth validation. Performance comparison.</p>
+    </div>
+    <div class="timeline-item">
+      <h4>Phase 5: Documentation &amp; Rollout</h4>
+      <span class="duration">1 week</span>
+      <p>SECURITY.md, USAGE_EXAMPLES.md, READMEs, migration guide, user communication.</p>
+    </div>
+    <div class="timeline-item">
+      <h4>Phase 6: GitLab Push &amp; Go-Live</h4>
+      <span class="duration">2 weeks</span>
+      <p>Create GitLab group and repos (after approvals). Push local code. Update project ID. Verify CI/CD. User communication. GitHub repos kept as backup.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:24px; border-left:3px solid var(--primary);">
+    <h4 style="margin-top:0;">Total: ~8–9 weeks</h4>
+    <p style="margin-bottom:0;">Phases 0–1 run in parallel, reducing wall-clock time</p>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- RISKS -->
+<!-- ============================================================ -->
+<section id="risks">
+<div class="container">
+  <h2>Risk Assessment</h2>
+  <table>
+    <tr><th>Risk</th><th>Impact</th><th>Likelihood</th><th>Mitigation</th></tr>
+    <tr><td>User disruption during migration</td><td><span class="badge badge-yellow">Medium</span></td><td><span class="badge badge-yellow">Medium</span></td><td>Clear migration guide, maintain GitHub temporarily, support channel</td></tr>
+    <tr><td>Tool compatibility regression</td><td><span class="badge badge-yellow">Medium</span></td><td><span class="badge badge-green">Low</span></td><td>80% test coverage, tool interfaces unchanged</td></tr>
+    <tr><td>GitLab single point of failure</td><td><span class="badge badge-yellow">Medium</span></td><td><span class="badge badge-green">Low</span></td><td>Local data caching, incident communication. Trade-off: consistency over diversity.</td></tr>
+    <tr><td>Approval lead time</td><td><span class="badge badge-yellow">Medium</span></td><td><span class="badge badge-yellow">Medium</span></td><td>Engage reviewers early, run in parallel with planning</td></tr>
+    <tr><td>Datasource refactor</td><td><span class="badge badge-green">Low</span></td><td><span class="badge badge-green">Low</span></td><td>Only 2 API endpoints change. Same pattern proven by GitLab MCP server.</td></tr>
+    <tr><td>Token management confusion</td><td><span class="badge badge-green">Low</span></td><td><span class="badge badge-green">Low</span></td><td>Users already have GitLab tokens for other MCP servers</td></tr>
+    <tr><td>Docker not installed</td><td><span class="badge badge-green">Low</span></td><td><span class="badge badge-green">Low</span></td><td>Already required for GitLab MCP and Jira MCP servers</td></tr>
+    <tr><td>Data migration issues</td><td><span class="badge badge-green">Low</span></td><td><span class="badge badge-green">Low</span></td><td>Simple file copy, verify with checksums</td></tr>
+    <tr><td>Daily data pipeline <em>(deferred)</em></td><td><span class="badge badge-yellow">Medium</span></td><td><span class="badge badge-green">Low</span></td><td>Separate implementation plan after core migration</td></tr>
+  </table>
+
+  <h3>Rollback Strategy</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left:3px solid var(--blue);">
+      <h4 style="margin-top:0;">🔄 Immediate</h4>
+      <p>Users revert <code>mcp.json</code> to GitHub-based config (preserved in migration guide)</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--yellow);">
+      <h4 style="margin-top:0;">⏳ Short-term</h4>
+      <p>GitHub repos remain accessible (archived, not deleted) for at least 4 weeks</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--green);">
+      <h4 style="margin-top:0;">🐳 Server Code</h4>
+      <p>GitLab registry retains all image versions — roll back to any previous SHA tag</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<footer>
+  <div class="container">
+    <p><strong>Appian Atlas — GitLab Migration Architecture Design</strong></p>
+    <p>Document Version 2.3 · February 25, 2026 · Appian Atlas Team</p>
+    <p>Reference: <code>gitlab-mcp-server</code> (gitlab.appian-stratus.com/appian/prod/gitlab-mcp-server)</p>
+  </div>
+</footer>
+
+</body>
+</html>
